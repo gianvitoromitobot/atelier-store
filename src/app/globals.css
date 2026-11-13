@@ -1,26 +1,330 @@
 @import "tailwindcss";
 
+/* =============================================================================
+   Atelier design system
+   - Raw values live in :root as CSS variables (can be re-scoped, e.g. .tone-inverse).
+   - @theme exposes them to Tailwind as utilities (bg-background, text-muted, …).
+   - See docs/design-system.md for the rules.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. Raw tokens
+   ------------------------------------------------------------------------ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Palette — monochrome with a warm-neutral image ground */
+  --ink: #0b0b0b;
+  --paper: #ffffff;
+  --stone-50: #f7f6f4; /* soft section background */
+  --stone-100: #f1efec; /* product image ground */
+  --stone-500: #6b6965; /* muted text — 5.4:1 on white (AA) */
+  --stone-700: #3d3b38;
+
+  /* Semantic colors (light tone — the default) */
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --fg-muted: var(--stone-500);
+  --surface: var(--stone-50);
+  --media: var(--stone-100);
+  --line: rgb(11 11 11 / 0.12);
+  --line-strong: var(--ink);
+  --scrim: rgb(0 0 0 / 0.4);
+  --danger: #b42318;
+  --success: #1f6f43;
+
+  /* Responsive layout tokens (mobile first; overridden at md / lg below) */
+  --gutter: 1rem;
+  --section-y: 3rem;
+  --header-h: 3.5rem;
+  --container-max: 90rem; /* 1440px */
+  --container-narrow: 45rem; /* 720px — long-form text, forms */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (width >= 48rem) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --gutter: 2rem;
+    --section-y: 4.5rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (width >= 64rem) {
+  :root {
+    --gutter: 4rem;
+    --section-y: 6rem;
+    --header-h: 4.5rem;
+  }
+}
+
+/* Inverse tone: black bands (footer, newsletter, overlays on dark media).
+   Any component inside inherits the flipped semantic colors automatically. */
+.tone-inverse {
+  --bg: var(--ink);
+  --fg: var(--paper);
+  --fg-muted: rgb(255 255 255 / 0.62);
+  --surface: #161616;
+  --media: #1c1c1c;
+  --line: rgb(255 255 255 / 0.2);
+  --line-strong: var(--paper);
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+/* ---------------------------------------------------------------------------
+   2. Tailwind theme
+   ------------------------------------------------------------------------ */
+@theme {
+  /* Breakpoints: md 768 (tablet), lg 1024 (desktop), xl 1440 (wide). sm kept for small phones → large phones. */
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 90rem;
+  --breakpoint-2xl: initial;
+
+  /* Square, flat UI: no radius or shadow scale (rounded-full still works for icon buttons). */
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+
+  /* Type scale — size / line-height / tracking / weight travel together. */
+  --text-caption: 0.6875rem; /* 11px: badges, legal */
+  --text-caption--line-height: 1rem;
+  --text-caption--letter-spacing: 0.01em;
+
+  --text-ui: 0.8125rem; /* 13px: nav, card titles, filters, prices in grids */
+  --text-ui--line-height: 1.25rem;
+  --text-ui--letter-spacing: 0;
+
+  --text-body: 1rem; /* 16px: descriptions, forms */
+  --text-body--line-height: 1.625rem;
+  --text-body--letter-spacing: 0;
+
+  --text-lead: 1.125rem; /* 18px: intros, PDP name and price */
+  --text-lead--line-height: 1.75rem;
+  --text-lead--letter-spacing: -0.005em;
+
+  --text-title: clamp(1.5rem, 1.25rem + 0.9vw, 2rem); /* 24→32px: section titles */
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.01em;
+
+  --text-display: clamp(2.25rem, 1.5rem + 3vw, 4.5rem); /* 36→72px: hero statements */
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.015em;
+
+  --tracking-label: 0.14em;
+
+  /* Motion */
+  --ease-atelier: cubic-bezier(0.6, 0, 0.1, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+
+  /* Monochrome palette only — the default Tailwind colors are removed on purpose. */
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-surface: var(--surface);
+  --color-media: var(--media);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-scrim: var(--scrim);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+}
+
+/* ---------------------------------------------------------------------------
+   3. Base
+   ------------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: var(--header-h);
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Links are unstyled by default; use <TextLink> or the .link utility for visible links. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--fg);
+    color: var(--bg);
+  }
+
+  hr {
+    border-color: var(--line);
+  }
+
+  input,
+  select,
+  textarea {
+    border-color: var(--line-strong);
+  }
+
+  ::placeholder {
+    color: var(--fg-muted);
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   4. Utilities (layout + typography roles)
+   ------------------------------------------------------------------------ */
+
+/* Centered page column with responsive side gutters (16 / 32 / 64px). */
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Narrow reading column for long text and forms. */
+@utility container-narrow {
+  width: 100%;
+  max-width: calc(var(--container-narrow) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility px-gutter {
+  padding-inline: var(--gutter);
+}
+
+@utility py-section {
+  padding-block: var(--section-y);
+}
+
+@utility pt-header {
+  padding-top: var(--header-h);
+}
+
+/* Uppercase spaced label: eyebrows, section labels, button text. */
+@utility eyebrow {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Underlined text link — underline is the affordance, never color. */
+@utility link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  text-decoration-color: currentColor;
+  transition: text-decoration-color 300ms var(--ease-atelier);
+
+  &:hover {
+    text-decoration-color: transparent;
+  }
+}
+
+/* Hide the scrollbar on horizontal rails (content stays scrollable by touch, trackpad and keyboard). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   5. Components
+   ------------------------------------------------------------------------ */
+
+/* Navigation drawer on a modal <dialog>: full-screen on phones, 600px right panel from md.
+   Slides in over 700ms; @starting-style + allow-discrete animate both opening and closing. */
+.drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  border: 0;
+  translate: 100% 0;
+  transition:
+    translate 700ms var(--ease-atelier),
+    overlay 700ms allow-discrete,
+    display 700ms allow-discrete;
+
+  &[open] {
+    translate: 0 0;
+
+    @starting-style {
+      translate: 100% 0;
+    }
+  }
+
+  &::backdrop {
+    background-color: rgb(0 0 0 / 0);
+    backdrop-filter: blur(0);
+    transition:
+      background-color 700ms var(--ease-atelier),
+      backdrop-filter 700ms var(--ease-atelier),
+      overlay 700ms allow-discrete,
+      display 700ms allow-discrete;
+  }
+
+  &[open]::backdrop {
+    background-color: var(--scrim);
+    backdrop-filter: blur(4px);
+
+    @starting-style {
+      background-color: rgb(0 0 0 / 0);
+      backdrop-filter: blur(0);
+    }
+  }
+}
+
+@media (width >= 48rem) {
+  .drawer {
+    max-width: 37.5rem;
+  }
 }

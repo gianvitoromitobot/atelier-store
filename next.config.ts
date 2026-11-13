@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  images: {
+    // Sample catalogue/editorial imagery is served from Unsplash until real assets exist.
+    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com", pathname: "/photo-*" }],
+  },
   turbopack: {
     rules: {
       "*.css": {
